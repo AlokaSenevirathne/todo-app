@@ -1,15 +1,10 @@
-# OS
-.DS_Store
-Thumbs.db
-
 # IDE
 .vscode/
 .idea/
 
+# OS
+.DS_Store
+Thumbs.db
+
 # Logs
 *.log
-
-# Environment
-.env
-.env.local
-.env.*

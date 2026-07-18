@@ -1,20 +1,12 @@
-# Todo Application
+# Todo App
 
-A full-stack Todo Management Application built using:
+A full-stack Todo Application built with:
 
 - Next.js
 - Laravel
 - PostgreSQL
 
-## Features
-
-- User Authentication
-- Todo CRUD
-- Search & Filter
-- Responsive UI
-
 ## Project Structure
 
-backend/
-frontend/
-docs/
+/backend
+/frontend
