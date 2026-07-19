@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\TodoController;
 
 
 Route::post('/register', [AuthController::class, 'register']);
@@ -19,11 +20,9 @@ Route::middleware('auth:sanctum')->group(function () {
         ]);
     });
 
-});
 
+    // Todo routes
+    Route::get('/todos', [TodoController::class, 'index']);
+    Route::post('/todos', [TodoController::class, 'store']);
 
-Route::get('/test', function () {
-    return response()->json([
-        'message' => 'API is working'
-    ]);
 });
