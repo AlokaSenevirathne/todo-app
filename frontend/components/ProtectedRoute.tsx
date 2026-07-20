@@ -24,10 +24,13 @@ export default function ProtectedRoute({ children }: Props) {
 
     if (!getToken()) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-100">
-                <p className="text-gray-600 text-lg">
-                    Redirecting...
-                </p>
+            <div className="min-h-screen flex items-center justify-center bg-slate-50">
+                <div className="flex flex-col items-center">
+                    <div className="w-8 h-8 border-2 border-slate-200 border-t-indigo-600 rounded-full animate-spin mb-4" />
+                    <p className="text-slate-500 text-sm">
+                        Redirecting...
+                    </p>
+                </div>
             </div>
         );
     }
