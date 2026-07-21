@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import api from "@/services/api";
-import { Plus, Loader2, ClipboardList, Check } from "lucide-react";
+import { Plus, Loader2, CheckSquare, Sparkles } from "lucide-react";
 
 interface Props {
     onCreated: () => void;
@@ -17,18 +17,13 @@ export default function TodoForm({ onCreated }: Props) {
 
     const [loading, setLoading] = useState(false);
 
-    const handleSubmit = async (
-        e: React.FormEvent
-    ) => {
-
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
         if (!form.title.trim()) return;
 
         setLoading(true);
 
         try {
-
             await api.post("/todos", {
                 title: form.title.trim(),
                 description: form.description.trim(),
@@ -41,57 +36,43 @@ export default function TodoForm({ onCreated }: Props) {
             });
 
             onCreated();
-
         } catch (error) {
-
-            console.log(error);
-
+            console.error(error);
         } finally {
-
             setLoading(false);
-
         }
-
     };
 
     const isFormValid = form.title.trim().length > 0;
 
     return (
-
-        <div className="bg-white rounded-xl border border-slate-200 p-6 mb-8">
-
+        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs">
+            
             {/* Header */}
-            <div className="flex items-center gap-2.5 mb-5">
-
-                <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center">
-                    <ClipboardList className="w-4 h-4 text-indigo-600" />
+            <div className="flex items-center justify-between pb-3.5 mb-4 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 bg-slate-900 rounded-md flex items-center justify-center text-white">
+                        <Plus className="w-3.5 h-3.5" />
+                    </div>
+                    <h2 className="text-sm font-bold text-slate-900">
+                        Create New Task
+                    </h2>
                 </div>
-
-                <h2 className="text-base font-semibold text-slate-900">
-                    Create New Task
-                </h2>
-
-                <span className="ml-auto text-xs font-medium text-slate-500 bg-slate-50 border border-slate-200 px-2 py-1 rounded-md">
-                    Required *
+                <span className="text-[11px] text-slate-400 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
+                    Auto-Saved
                 </span>
-
             </div>
 
-            <form
-                onSubmit={handleSubmit}
-                className="space-y-4"
-            >
-
-                {/* Title Input */}
+            <form onSubmit={handleSubmit} className="space-y-3.5">
+                
+                {/* Title */}
                 <div>
-
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                        Task Title
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                        Task Title <span className="text-red-500">*</span>
                     </label>
-
                     <input
                         type="text"
-                        placeholder="Enter task title..."
+                        placeholder="e.g., Prepare weekly report or schedule appointment"
                         value={form.title}
                         onChange={(e) =>
                             setForm({
@@ -99,25 +80,26 @@ export default function TodoForm({ onCreated }: Props) {
                                 title: e.target.value
                             })
                         }
-                        className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-colors bg-slate-50 focus:bg-white disabled:opacity-60 disabled:cursor-not-allowed"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-800 focus:bg-white transition-all disabled:opacity-60"
                         required
                         disabled={loading}
                     />
-
                 </div>
 
-                {/* Description Input */}
+                {/* Description */}
                 <div>
-
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                        Description
-                        <span className="text-slate-400 font-normal ml-1">
-                            (optional)
-                        </span>
-                    </label>
-
+                    <div className="flex items-center justify-between mb-1">
+                        <label className="text-xs font-semibold text-slate-700">
+                            Description <span className="text-slate-400 font-normal">(Optional)</span>
+                        </label>
+                        {form.description.length > 0 && (
+                            <span className="text-[10px] text-slate-400 font-mono">
+                                {form.description.length} chars
+                            </span>
+                        )}
+                    </div>
                     <textarea
-                        placeholder="Add some details about your task..."
+                        placeholder="Add additional details, context, or acceptance criteria..."
                         value={form.description}
                         onChange={(e) =>
                             setForm({
@@ -125,58 +107,39 @@ export default function TodoForm({ onCreated }: Props) {
                                 description: e.target.value
                             })
                         }
-                        rows={3}
-                        className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-colors bg-slate-50 focus:bg-white resize-none disabled:opacity-60 disabled:cursor-not-allowed"
+                        rows={2}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-800 focus:bg-white transition-all resize-none disabled:opacity-60"
                         disabled={loading}
                     />
-
-                    {form.description.length > 0 && (
-                        <p className="text-xs text-slate-400 mt-1.5 text-right">
-                            {form.description.length} characters
-                        </p>
-                    )}
-
                 </div>
 
-                {/* Submit Button */}
-                <div className="pt-2">
+                {/* Submit */}
+                <div className="pt-1 flex items-center justify-between">
+                    <p className="text-[11px] text-slate-400">
+                        Task will default to <span className="font-medium text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">pending</span> status
+                    </p>
 
                     <button
                         type="submit"
                         disabled={loading || !isFormValid}
-                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 disabled:bg-slate-300 disabled:cursor-not-allowed text-white px-6 py-2.5 rounded-lg font-medium text-sm transition-colors duration-150 shadow-sm"
+                        className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg text-xs font-medium transition-all shadow-xs"
                     >
-
                         {loading ? (
                             <>
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                                <span>Creating task...</span>
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                <span>Saving...</span>
                             </>
                         ) : (
                             <>
-                                <Plus className="w-4 h-4" />
-                                <span>Create Task</span>
+                                <Plus className="w-3.5 h-3.5" />
+                                <span>Save Task</span>
                             </>
                         )}
-
                     </button>
-
-                    {/* Quick tip */}
-                    {!loading && isFormValid && (
-
-                        <p className="text-xs text-emerald-600 mt-2 flex items-center gap-1">
-                            <Check className="w-3.5 h-3.5" />
-                            <span>Ready to create</span>
-                        </p>
-
-                    )}
-
                 </div>
 
             </form>
 
         </div>
-
     );
-
-}
+}

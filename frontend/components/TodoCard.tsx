@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import api from "@/services/api";
-import { Edit, Save, Trash2, CheckCircle, Clock, X, RotateCcw } from "lucide-react";
+import { Edit, Save, Trash2, CheckCircle2, Clock, X, RotateCcw, AlertTriangle } from "lucide-react";
 
 interface Todo {
     id: number;
@@ -16,103 +16,65 @@ interface Props {
     onRefresh: () => void;
 }
 
-export default function TodoCard({
-    todo,
-    onRefresh
-}: Props) {
+export default function TodoCard({ todo, onRefresh }: Props) {
 
     const [editing, setEditing] = useState(false);
     const [title, setTitle] = useState(todo.title);
     const [description, setDescription] = useState(todo.description);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
 
-    const handleDelete = async () => {
-
-        if (!confirm("Delete this todo?"))
-            return;
-
+    const confirmDelete = async () => {
         setIsDeleting(true);
 
         try {
-
             await api.delete(`/todos/${todo.id}`);
             onRefresh();
-
         } catch (error) {
-
-            console.log(error);
-
+            console.error(error);
         } finally {
-
             setIsDeleting(false);
-
+            setShowDeleteConfirm(false);
         }
-
     };
 
-    const handleStatus = async () => {
-
+    const handleStatusToggle = async () => {
         setIsUpdating(true);
 
         try {
-
             if (todo.status === "pending") {
-
-                await api.patch(
-                    `/todos/${todo.id}/complete`
-                );
-
+                await api.patch(`/todos/${todo.id}/complete`);
             } else {
-
-                await api.patch(
-                    `/todos/${todo.id}/pending`
-                );
-
+                await api.patch(`/todos/${todo.id}/pending`);
             }
-
             onRefresh();
-
         } catch (error) {
-
-            console.log(error);
-
+            console.error(error);
         } finally {
-
             setIsUpdating(false);
-
         }
-
     };
 
     const handleUpdate = async () => {
+        if (!title.trim()) return;
 
         setIsUpdating(true);
 
         try {
-
-            await api.put(
-                `/todos/${todo.id}`,
-                {
-                    title,
-                    description,
-                    status: todo.status
-                }
-            );
+            await api.put(`/todos/${todo.id}`, {
+                title: title.trim(),
+                description: description.trim(),
+                status: todo.status
+            });
 
             setEditing(false);
             onRefresh();
-
         } catch (error) {
-
-            console.log(error);
-
+            console.error(error);
         } finally {
-
             setIsUpdating(false);
-
         }
-
     };
 
     const handleCancelEdit = () => {
@@ -124,179 +86,183 @@ export default function TodoCard({
     const isCompleted = todo.status === "completed";
 
     return (
+        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between relative group">
 
-        <div className="group bg-white rounded-xl border border-slate-200 p-5 hover:border-slate-300 hover:shadow-sm transition-all duration-200 relative overflow-hidden">
+            {/* Custom Delete Confirmation Modal Overlay */}
+            {showDeleteConfirm && (
+                <div className="absolute inset-0 bg-white/95 backdrop-blur-xs rounded-xl z-20 p-4 flex flex-col justify-between items-center text-center animate-in fade-in duration-150">
+                    <div className="flex flex-col items-center space-y-1.5 my-auto">
+                        <div className="w-8 h-8 rounded-full bg-red-50 border border-red-200 flex items-center justify-center text-red-600">
+                            <AlertTriangle className="w-4 h-4" />
+                        </div>
+                        <h4 className="text-xs font-bold text-slate-900">Delete Task?</h4>
+                        <p className="text-[11px] text-slate-500 max-w-[200px] leading-tight">
+                            This action cannot be undone. Permanent removal.
+                        </p>
+                    </div>
 
-            {/* Status Indicator Line */}
-            <div className={`absolute top-0 left-0 w-1 h-full transition-colors duration-300 ${isCompleted ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                    <div className="flex items-center gap-2 w-full pt-2 border-t border-slate-100">
+                        <button
+                            onClick={() => setShowDeleteConfirm(false)}
+                            disabled={isDeleting}
+                            className="flex-1 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={confirmDelete}
+                            disabled={isDeleting}
+                            className="flex-1 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-1"
+                        >
+                            {isDeleting ? (
+                                <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                                <span>Delete</span>
+                            )}
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {editing ? (
 
-                // Edit Mode
-                <div className="space-y-4">
-
+                /* Edit Mode Form */
+                <div className="space-y-3">
                     <div>
-
-                        <label className="block text-xs font-medium text-slate-500 mb-1.5">
-                            Title
+                        <label className="block text-[11px] font-semibold text-slate-500 uppercase mb-1">
+                            Edit Title
                         </label>
-
                         <input
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-colors bg-slate-50 focus:bg-white"
-                            placeholder="Enter title"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-800 focus:bg-white transition-all"
+                            placeholder="Task title..."
+                            autoFocus
                         />
-
                     </div>
 
                     <div>
-
-                        <label className="block text-xs font-medium text-slate-500 mb-1.5">
-                            Description
+                        <label className="block text-[11px] font-semibold text-slate-500 uppercase mb-1">
+                            Edit Description
                         </label>
-
                         <textarea
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            rows={3}
-                            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-colors bg-slate-50 focus:bg-white resize-none"
-                            placeholder="Enter description"
+                            rows={2}
+                            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-800 focus:bg-white transition-all resize-none"
+                            placeholder="Task description..."
                         />
-
                     </div>
 
-                    <div className="flex gap-2">
-
+                    <div className="flex items-center gap-2 pt-1">
                         <button
                             onClick={handleUpdate}
-                            disabled={isUpdating}
-                            className="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                            disabled={isUpdating || !title.trim()}
+                            className="inline-flex items-center gap-1 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-all shadow-xs"
                         >
-
                             {isUpdating ? (
-                                <>
-                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                    <span>Saving...</span>
-                                </>
+                                <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
                             ) : (
-                                <>
-                                    <Save className="w-4 h-4" />
-                                    <span>Save</span>
-                                </>
+                                <Save className="w-3.5 h-3.5" />
                             )}
-
+                            <span>Save</span>
                         </button>
 
                         <button
                             onClick={handleCancelEdit}
-                            className="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                            className="inline-flex items-center gap-1 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
                         >
-                            <X className="w-4 h-4" />
+                            <X className="w-3.5 h-3.5" />
                             <span>Cancel</span>
                         </button>
-
                     </div>
-
                 </div>
 
             ) : (
 
-                // View Mode
+                /* Read Mode Display */
                 <>
+                    <div className="space-y-2">
+                        {/* Title & Status Badge Header */}
+                        <div className="flex items-start justify-between gap-2">
+                            <h3 className={`text-sm font-bold tracking-tight text-slate-900 leading-snug flex-1 ${isCompleted ? 'line-through text-slate-400' : ''}`}>
+                                {todo.title}
+                            </h3>
 
-                    {/* Header */}
-                    <div className="flex items-start justify-between gap-3">
-
-                        <h3 className={`text-base font-semibold text-slate-900 flex-1 ${isCompleted ? 'line-through text-slate-400' : ''}`}>
-                            {todo.title}
-                        </h3>
-
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap flex-shrink-0 ${
-                            isCompleted
-                                ? "bg-emerald-50 text-emerald-700"
-                                : "bg-amber-50 text-amber-700"
-                        }`}>
-
-                            {isCompleted ? (
-                                <CheckCircle className="w-3 h-3" />
-                            ) : (
-                                <Clock className="w-3 h-3" />
-                            )}
-
-                            {todo.status}
-
-                        </span>
-
-                    </div>
-
-                    {/* Description */}
-                    <p className={`text-sm text-slate-600 mt-3 line-clamp-3 ${isCompleted ? 'text-slate-400' : ''}`}>
-                        {todo.description || "No description"}
-                    </p>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-2 mt-5 pt-4 border-t border-slate-100">
-
-                        <button
-                            onClick={() => setEditing(true)}
-                            className="inline-flex items-center gap-1.5 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
-                        >
-                            <Edit className="w-3.5 h-3.5" />
-                            <span>Edit</span>
-                        </button>
-
-                        <button
-                            onClick={handleStatus}
-                            disabled={isUpdating}
-                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider shrink-0 border ${
                                 isCompleted
-                                    ? "bg-amber-50 hover:bg-amber-100 text-amber-700"
-                                    : "bg-emerald-50 hover:bg-emerald-100 text-emerald-700"
-                            }`}
-                        >
+                                    ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                                    : "bg-amber-50 text-amber-800 border-amber-200"
+                            }`}>
+                                {isCompleted ? (
+                                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                ) : (
+                                    <Clock className="w-3 h-3 text-amber-600" />
+                                )}
+                                <span>{todo.status}</span>
+                            </span>
+                        </div>
 
-                            {isUpdating ? (
-                                <div className={`w-3.5 h-3.5 border-2 border-t-transparent rounded-full animate-spin ${isCompleted ? 'border-amber-700' : 'border-emerald-700'}`} />
-                            ) : isCompleted ? (
-                                <>
-                                    <RotateCcw className="w-3.5 h-3.5" />
-                                    <span>Pending</span>
-                                </>
-                            ) : (
-                                <>
-                                    <CheckCircle className="w-3.5 h-3.5" />
-                                    <span>Complete</span>
-                                </>
-                            )}
+                        {/* Description */}
+                        <p className={`text-xs text-slate-600 leading-relaxed line-clamp-3 ${isCompleted ? 'text-slate-400' : ''}`}>
+                            {todo.description || <span className="italic text-slate-400">No additional description</span>}
+                        </p>
+                    </div>
 
-                        </button>
+                    {/* Bottom Toolbar Actions */}
+                    <div className="flex items-center justify-between pt-3 mt-4 border-t border-slate-100 text-xs">
+                        
+                        <div className="flex items-center gap-1.5">
+                            {/* Toggle Completion */}
+                            <button
+                                onClick={handleStatusToggle}
+                                disabled={isUpdating}
+                                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all border ${
+                                    isCompleted
+                                        ? "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200"
+                                        : "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200"
+                                }`}
+                                title={isCompleted ? "Mark as pending" : "Mark as completed"}
+                            >
+                                {isUpdating ? (
+                                    <div className="w-3 h-3 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
+                                ) : isCompleted ? (
+                                    <>
+                                        <RotateCcw className="w-3 h-3" />
+                                        <span>Mark Pending</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <CheckCircle2 className="w-3 h-3" />
+                                        <span>Complete</span>
+                                    </>
+                                )}
+                            </button>
 
+                            {/* Edit Button */}
+                            <button
+                                onClick={() => setEditing(true)}
+                                className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                            >
+                                <Edit className="w-3 h-3" />
+                                <span>Edit</span>
+                            </button>
+                        </div>
+
+                        {/* Delete Button */}
                         <button
-                            onClick={handleDelete}
-                            disabled={isDeleting}
-                            className="inline-flex items-center gap-1.5 text-slate-600 hover:text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ml-auto"
+                            onClick={() => setShowDeleteConfirm(true)}
+                            className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400 hover:text-red-600 hover:bg-red-50 px-2 py-1 rounded-md transition-colors"
+                            title="Delete task"
                         >
-
-                            {isDeleting ? (
-                                <div className="w-3.5 h-3.5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
-                            ) : (
-                                <>
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                    <span>Delete</span>
-                                </>
-                            )}
-
+                            <Trash2 className="w-3 h-3" />
                         </button>
 
                     </div>
-
                 </>
 
             )}
 
         </div>
-
     );
-
-}
+}

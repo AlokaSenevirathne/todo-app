@@ -4,7 +4,8 @@ import { useState } from "react";
 import api from "@/services/api";
 import { saveToken } from "@/utils/auth";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, LogIn, AlertCircle, Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
+import { Mail, Lock, LogIn, AlertCircle, Eye, EyeOff, CheckSquare, ArrowRight } from "lucide-react";
 
 export default function LoginPage() {
 
@@ -19,239 +20,164 @@ export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleChange = (
-        e: React.ChangeEvent<HTMLInputElement>
-    ) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setForm({
             ...form,
             [e.target.name]: e.target.value
         });
     };
 
-    const handleSubmit = async (
-        e: React.FormEvent
-    ) => {
-
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
         setError("");
         setIsLoading(true);
 
         try {
-
-            const response = await api.post(
-                "/login",
-                form
-            );
-
-            saveToken(
-                response.data.token
-            );
-
+            const response = await api.post("/login", form);
+            saveToken(response.data.token);
             router.push("/dashboard");
-
-        } catch(error:any) {
-
+        } catch(error: any) {
             setError(
                 error.response?.data?.message ||
-                "Invalid email or password"
+                "Invalid email address or password. Please try again."
             );
-
         } finally {
-
             setIsLoading(false);
-
         }
-
     };
 
     return (
+        <div className="min-h-screen flex flex-col justify-between bg-slate-50 selection:bg-indigo-100 selection:text-indigo-900">
+            
+            {/* Header branding */}
+            <div className="px-6 py-4 flex items-center justify-between">
+                <Link href="/" className="flex items-center gap-2 text-slate-900 font-semibold text-sm">
+                    <div className="w-7 h-7 bg-slate-900 rounded-md flex items-center justify-center text-white">
+                        <CheckSquare className="w-4 h-4" />
+                    </div>
+                    <span>TaskFlow</span>
+                </Link>
+                <Link href="/register" className="text-xs font-medium text-slate-600 hover:text-slate-900">
+                    Need an account? <span className="text-indigo-600 font-semibold">Sign Up</span>
+                </Link>
+            </div>
 
-        <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-12">
+            {/* Login Card Form */}
+            <div className="flex-1 flex items-center justify-center px-4 py-8">
+                <div className="w-full max-w-md">
 
-            <div className="w-full max-w-md">
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 space-y-6">
+                        
+                        <div className="text-center space-y-1">
+                            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+                                Welcome Back
+                            </h1>
+                            <p className="text-slate-500 text-xs">
+                                Enter your credentials to access your workspace
+                            </p>
+                        </div>
 
-                {/* Logo/Brand Section */}
-                <div className="text-center mb-8">
+                        {/* Error Callout */}
+                        {error && (
+                            <div className="bg-red-50/80 border border-red-200/90 rounded-lg p-3.5 flex items-start gap-3 text-left">
+                                <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                                <div className="space-y-0.5">
+                                    <p className="text-xs font-semibold text-red-800">Authentication Error</p>
+                                    <p className="text-xs text-red-700">{error}</p>
+                                </div>
+                            </div>
+                        )}
 
-                    <div className="inline-flex items-center justify-center w-12 h-12 bg-indigo-600 rounded-xl mb-4">
-                        <LogIn className="w-5 h-5 text-white" />
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            
+                            <div>
+                                <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                                    Email Address
+                                </label>
+                                <div className="relative">
+                                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                    <input
+                                        name="email"
+                                        type="email"
+                                        placeholder="name@company.com"
+                                        value={form.email}
+                                        onChange={handleChange}
+                                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50/70 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:bg-white transition-all"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <div className="flex items-center justify-between mb-1.5">
+                                    <label className="text-xs font-medium text-slate-700">
+                                        Password
+                                    </label>
+                                </div>
+                                <div className="relative">
+                                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                    <input
+                                        name="password"
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder="••••••••"
+                                        value={form.password}
+                                        onChange={handleChange}
+                                        className="w-full pl-10 pr-11 py-2.5 bg-slate-50/70 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:bg-white transition-all"
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                                    >
+                                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={isLoading}
+                                className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-all shadow-xs flex items-center justify-center gap-2"
+                            >
+                                {isLoading ? (
+                                    <>
+                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                        <span>Authenticating...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span>Sign In to Dashboard</span>
+                                        <ArrowRight className="w-4 h-4 text-slate-400" />
+                                    </>
+                                )}
+                            </button>
+
+                        </form>
+
+                        <div className="pt-2 text-center border-t border-slate-100">
+                            <p className="text-xs text-slate-500">
+                                Don't have an account yet?{" "}
+                                <Link href="/register" className="text-indigo-600 font-semibold hover:underline">
+                                    Register here
+                                </Link>
+                            </p>
+                        </div>
+
                     </div>
 
-                    <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">
-                        Welcome Back
-                    </h1>
-
-                    <p className="text-slate-500 mt-1.5 text-sm">
-                        Sign in to your account to continue
+                    <p className="text-center text-xs text-slate-400 mt-6">
+                        Protected by end-to-end account security
                     </p>
 
                 </div>
+            </div>
 
-                {/* Login Card */}
-                <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-8">
-
-                    {/* Error Message */}
-                    {error && (
-
-                        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg px-4 py-3 flex items-start gap-3">
-
-                            <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
-
-                            <div>
-                                <p className="text-sm font-medium text-red-800">
-                                    Authentication Failed
-                                </p>
-                                <p className="text-sm text-red-600 mt-0.5">
-                                    {error}
-                                </p>
-                            </div>
-
-                        </div>
-
-                    )}
-
-                    {/* Login Form */}
-                    <form
-                        onSubmit={handleSubmit}
-                        className="space-y-5"
-                    >
-
-                        {/* Email Field */}
-                        <div>
-
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
-                                Email Address
-                            </label>
-
-                            <div className="relative">
-
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-
-                                <input
-                                    name="email"
-                                    type="email"
-                                    placeholder="Enter your email"
-                                    value={form.email}
-                                    onChange={handleChange}
-                                    className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-colors bg-slate-50 focus:bg-white"
-                                    required
-                                />
-
-                            </div>
-
-                        </div>
-
-                        {/* Password Field */}
-                        <div>
-
-                            <div className="flex items-center justify-between mb-2">
-
-                                <label className="text-sm font-medium text-slate-700">
-                                    Password
-                                </label>
-
-                                <a
-                                    href="/forgot-password"
-                                    className="text-sm text-indigo-600 hover:text-indigo-700 font-medium hover:underline"
-                                >
-                                    Forgot Password?
-                                </a>
-
-                            </div>
-
-                            <div className="relative">
-
-                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-
-                                <input
-                                    name="password"
-                                    type={showPassword ? "text" : "password"}
-                                    placeholder="Enter your password"
-                                    value={form.password}
-                                    onChange={handleChange}
-                                    className="w-full pl-10 pr-11 py-2.5 border border-slate-200 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-colors bg-slate-50 focus:bg-white"
-                                    required
-                                />
-
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-                                >
-
-                                    {showPassword ? (
-                                        <EyeOff className="w-4 h-4" />
-                                    ) : (
-                                        <Eye className="w-4 h-4" />
-                                    )}
-
-                                </button>
-
-                            </div>
-
-                        </div>
-
-                        {/* Submit Button */}
-                        <button
-                            type="submit"
-                            disabled={isLoading}
-                            className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors duration-150 shadow-sm flex items-center justify-center gap-2"
-                        >
-
-                            {isLoading ? (
-                                <>
-                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                    <span>Signing in...</span>
-                                </>
-                            ) : (
-                                <>
-                                    <LogIn className="w-4 h-4" />
-                                    <span>Sign In</span>
-                                </>
-                            )}
-
-                        </button>
-
-                        {/* Divider */}
-                        <div className="relative my-6">
-
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-slate-200"></div>
-                            </div>
-
-                            <div className="relative flex justify-center text-xs">
-                                <span className="px-3 bg-white text-slate-500 uppercase tracking-wide">
-                                    New to our platform?
-                                </span>
-                            </div>
-
-                        </div>
-
-                        {/* Register Link */}
-                        <p className="text-center text-sm text-slate-600">
-                            Don't have an account?
-                            <a
-                                href="/register"
-                                className="text-indigo-600 font-medium ml-1.5 hover:text-indigo-700 hover:underline transition-colors"
-                            >
-                                Create an account
-                            </a>
-                        </p>
-
-                    </form>
-
-                </div>
-
-                {/* Footer Note */}
-                <p className="text-center text-xs text-slate-400 mt-6">
-                    By signing in, you agree to our Terms of Service and Privacy Policy
-                </p>
-
+            {/* Footer */}
+            <div className="py-4 text-center text-xs text-slate-400">
+                TaskFlow App • Enterprise Todo Management
             </div>
 
         </div>
-
     );
-
-}
+}
